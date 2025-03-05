@@ -1,84 +1,88 @@
 import 'dart:io';
+import 'dart:math';
+void main(){
+TicTacToe game = TicTacToe();
+  game.startGame();
 
+}
 class TicTacToe {
-  //🔹 List.generate(length, (index) => value)
- //🔹 List.filled(length, value, growable: false)
+  List<List<String>> board = List.generate(3, (_) => List.filled(3, ' '));
+  String player = 'X';
+  bool againstComputer = false;
 
-  List<List<String>> board = List.generate(3, (_) => List.filled(3, ' ', growable: false));
-  String currentPlayer = 'X';
-
-  void printBoard() {
-    for (var row in board) {
-      print(row.join(' | '));
-      print('---------');
-    }
-  }
-
-  bool makeMove(int row, int col) {
-    if (row < 0 || row >= 3 || col < 0 || col >= 3 || board[row][col] != ' ') {
-      print("Invalid move! Try again.");
-      return false;
-    }
-    board[row][col] = currentPlayer;
-    return true;
-  }
-
-  bool checkWinner() {
-    // Check rows and columns
-    for (int i = 0; i < 3; i++) {
-      if (board[i][0] != ' ' && board[i][0] == board[i][1] && board[i][1] == board[i][2] ||
-          board[0][i] != ' ' && board[0][i] == board[1][i] && board[1][i] == board[2][i]) {
-        return true;
-      }
-    }
-    // Check diagonals
-    if (board[0][0] != ' ' && board[0][0] == board[1][1] && board[1][1] == board[2][2] ||
-        board[0][2] != ' ' && board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
-      return true;
-    }
-    return false;
-  }
-
-  bool isBoardFull() {
-    for (var row in board) {
-      if (row.contains(' ')) return false;
-    }
-    return true;
-  }
-
-  void switchPlayer() {
-    currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+  void startGame() {
+    print("Welcome to Tic-Tac-Toe!");
+    print("Do you want to play against the computer? (yes/no): ");
+    String choice = stdin.readLineSync()!.toLowerCase();
+    againstComputer = choice == 'yes';
+    play();
   }
 
   void play() {
     while (true) {
       printBoard();
-      print("Player $currentPlayer, enter your move (row and column: 0, 1, or 2):");
-      int row = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
-      int col = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
-
-      if (!makeMove(row, col)) continue;
-
-      if (checkWinner()) {
-        printBoard();
-        print("Player $currentPlayer wins!");
-        break;
+      if (againstComputer && player == 'O') {
+        computerMove();
+      } else {
+        playerMove();
       }
-
-      if (isBoardFull()) {
+      if (checkWin()) {
+        printBoard();
+        print("Player $player wins!");
+        return;
+      }
+      if (isDraw()) {
         printBoard();
         print("It's a draw!");
-        break;
+        return;
       }
-
-      switchPlayer();
+      player = player == 'X' ? 'O' : 'X';
     }
   }
+
+  void playerMove() {
+    print("Player $player, enter row and column (0-2): ");
+    int row = int.parse(stdin.readLineSync()!);
+    int col = int.parse(stdin.readLineSync()!);
+    if (board[row][col] == ' ') {
+      board[row][col] = player;
+    } else {
+      print("Cell already taken, try again");
+      playerMove();
+    }
+  }
+
+  void computerMove() {
+    print("Computer is making a move...");
+    Random random = Random();
+    int row, col;
+    do {
+      row = random.nextInt(3);
+      col = random.nextInt(3);
+    } while (board[row][col] != ' ');
+    board[row][col] = 'O';
+  }
+
+  void printBoard() {
+    for (var row in board) {
+      print(row.join(' | '));
+    }
+  }
+
+  bool checkWin() {
+    for (int i = 0; i < 3; i++) {
+      if (board[i][0] == board[i][1] && board[i][1] == board[i][2] && board[i][0] != ' ') return true;
+      if (board[0][i] == board[1][i] && board[1][i] == board[2][i] && board[0][i] != ' ') return true;
+    }
+    if (board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != ' ') return true;
+    if (board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != ' ') return true;
+    return false;
+  }
+
+  bool isDraw() {
+    for (var row in board) {
+      if (row.contains(' ')) return false;
+    }
+    return true;
+  }
 }
-
-void main() {
-  TicTacToe game = TicTacToe();
-  game.play();
-}
-
-
